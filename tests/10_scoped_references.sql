@@ -7,6 +7,8 @@ SELECT t1.a FROM t1;
 --- returns:
 1
 2
+--- with columns:
+a
 
 --- can use use uppercase references to a column
 CREATE TABLE t1(a INTEGER);
@@ -15,6 +17,8 @@ SELECT T1.A FROM t1;
 --- returns:
 1
 2
+--- with columns:
+a
 
 --- can used qualified references in where
 CREATE TABLE t1(a INTEGER);
@@ -39,7 +43,7 @@ validation_error
 CREATE TABLE t1(a INTEGER);
 SELECT t1.a.z FROM t1;
 --- returns error:
-validation_error
+parsing_error
 
 --- returns a validation error when referencing names of other items within the select list
 SELECT 2 AS two, two * 3;

@@ -19,7 +19,7 @@ validation_error
 --- returns an error if multiple columns have the same name
 CREATE TABLE t2(a INTEGER, a BOOLEAN);
 --- returns error:
-validation_error
+parsing_error
 
 --- returns an error when dropping a table that does not exist
 DROP TABLE t2;

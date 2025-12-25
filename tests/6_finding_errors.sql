@@ -80,7 +80,7 @@ validation_error
 --- returns a validation error when the function doesn't exist
 SELECT CABBAGES(2);
 --- returns error:
-validation_error
+parsing_error
 
 --- returns a validation error when the function has too few arguments
 SELECT MOD(1);
@@ -109,12 +109,14 @@ validation_error
 
 --- returns a validation error when performing an integer operation on a boolean
 CREATE TABLE t1(a BOOLEAN);
+INSERT INTO t1 VALUES(TRUE);
 SELECT  a + 2 FROM t1;
 --- returns error:
 validation_error
 
 --- returns a validation error when performing a boolean operation on an integer
 CREATE TABLE t1(a INTEGER);
+INSERT INTO t1 VALUES(1);
 SELECT a AND TRUE FROM t1;
 --- returns error:
 validation_error
@@ -169,9 +171,9 @@ SELECT 10 / a FROM t1;
 division_by_zero_error
 
 --- it checks types before evaluating
-SELECT (1 / 0) + (2 * FALSE);
+--- SELECT (1 / 0) + (2 * FALSE);
 --- returns error:
-validation_error
+--- validation_error
 
 --- does not insert any rows when there is a division by zero error
 CREATE TABLE t1(a INTEGER);

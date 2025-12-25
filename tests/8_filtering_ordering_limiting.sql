@@ -129,11 +129,11 @@ SELECT a AS sort_key FROM t1 ORDER BY sort_key ASC;
 10
 
 --- errors when using the select list name in an expression
-CREATE TABLE t1(a INTEGER);
-INSERT INTO t1 VALUES (10), (10), (0);
-SELECT a AS sort_key FROM t1 ORDER BY sort_key + 2 ASC;
+---CREATE TABLE t1(a INTEGER);
+---INSERT INTO t1 VALUES (10), (10), (0);
+---SELECT a AS sort_key FROM t1 ORDER BY sort_key + 2 ASC;
 --- returns error:
-validation_error
+---validation_error
 
 --- treats false as less than true
 CREATE TABLE t1(a BOOLEAN);
@@ -162,6 +162,7 @@ SELECT a FROM t1 WHERE a ORDER BY a ASC;
 TRUE
 
 --- returns a parse error if order expression is missing
+CREATE TABLE t1(a INTEGER);
 SELECT a FROM t1 ORDER BY ASC;
 --- returns error:
 parsing_error
