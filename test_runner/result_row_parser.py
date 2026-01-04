@@ -28,15 +28,19 @@ class ResultRowParser:
             return True
         elif self.consume(r'^FALSE'):
             return False
+        elif self.consume(r"^'([^']*)'"):
+            # Extract the string content without quotes from the captured group
+            return self.last_match.group(1)
         elif (self.consume(r'^(-?\d+)')):
-            return int(self.last_match)
+            return int(self.last_match.group(1))
         else:
             raise Exception('Unexpected result row value: ' + self.row)
 
     def consume(self, regex):
-        regex = re.compile(regex)
-        match = regex.match(self.row)
+        regex_obj = re.compile(regex)
+        match = regex_obj.match(self.row)
         if match:
             self.row = self.row[match.end():].strip()
-            self.last_match = match.group()
-            return self.last_match
+            self.last_match = match  # Store the match object, not the string
+            return match.group()  # But still return the string for backward compatibility
+
