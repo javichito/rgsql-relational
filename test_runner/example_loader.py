@@ -8,19 +8,21 @@ from test_runner.example_parser import ExampleParser
 
 def path_sort_key(path):
     file_name = os.path.basename(path)
-    return [int(re.match(r'^(\d+)', file_name).group(1)), file_name]
+    match = re.match(r'^(\d+)', file_name)
+    if match:
+        return [int(match.group(1)), file_name]
+    else:
+        return [float('inf'), file_name]
 
 
-current_dir = os.path.dirname(__file__)
-tests_dir = os.path.join(current_dir, '..', 'tests')
-sql_test_files = glob.glob(os.path.join(tests_dir, '*.sql'))
-sql_test_files = sorted(sql_test_files, key=path_sort_key)
+
 
 
 class ExampleLoader:
-    def __init__(self, filtered_path, filtered_line):
+    def __init__(self, filtered_path, filtered_line, test_dir):
         self.filtered_path = filtered_path
         self.filtered_line = filtered_line
+        self.test_dir = test_dir
 
     def examples(self):
         for path in self.filtered_paths():
@@ -28,6 +30,9 @@ class ExampleLoader:
                 yield example
 
     def filtered_paths(self):
+        sql_test_files = glob.glob(os.path.join(self.test_dir, '*.sql'))
+        sql_test_files = sorted(sql_test_files, key=path_sort_key)
+
         if self.filtered_path:
             return [file for file in sql_test_files if os.path.samefile(file, self.filtered_path)]
         else:

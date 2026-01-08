@@ -23,6 +23,11 @@ class Suite:
         self.manual = options['MANUAL']
         self.skip_server_tests = options['SKIP_SERVER_TESTS'] or self.manual
         self.passed_reporter = passed_reporter.build(self.postgres_connection)
+        self.test_dir = options.get('TEST_DIR')
+
+        if not self.test_dir:
+             current_dir = os.path.dirname(__file__)
+             self.test_dir = os.path.join(current_dir, '..', 'tests')
 
         if len(filtered_files) > 1:
             raise ValueError("Only one file can be provided")
@@ -36,7 +41,8 @@ class Suite:
 
         self.loader = ExampleLoader(
             self.filtered_file_path,
-            self.filtered_file_line
+            self.filtered_file_line,
+            self.test_dir
         )
 
     def record_pass(self, details):
