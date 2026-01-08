@@ -30,6 +30,12 @@ def main():
                       default=False
                       )
 
+    parser.add_option("-t", "--test-dir",
+                      dest="TEST_DIR",
+                      metavar="DIR",
+                      help="Directory containing the .sql test files",
+                      default=None)
+
     (options, args) = parser.parse_args()
 
     Suite(vars(options), args).run()

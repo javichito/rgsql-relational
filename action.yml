@@ -1,0 +1,34 @@
+name: 'Run rgSQL Tests'
+description: 'Run the rgSQL test runner against a custom implementation'
+inputs:
+  test-dir:
+    description: 'Directory containing the .sql test files'
+    required: true
+  server-command:
+    description: 'Command to start your database server'
+    required: false
+  postgres-connection:
+    description: 'PostgreSQL connection string (if testing against Postgres)'
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Run Tests
+      shell: bash
+      env:
+        RGSQL_SERVER_COMMAND: ${{ inputs.server-command }}
+      run: |
+        # locate the action path to find run-tests
+        ACTION_PATH="${{ github.action_path }}"
+        
+        ARGS=""
+        if [ -n "${{ inputs.postgres-connection }}" ]; then
+          ARGS="$ARGS --postgres-connection ${{ inputs.postgres-connection }}"
+        fi
+        
+        $ACTION_PATH/run-tests --test-dir ${{ inputs.test-dir }} $ARGS
