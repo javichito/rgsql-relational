@@ -22,6 +22,7 @@ runs:
       shell: bash
       env:
         RGSQL_SERVER_COMMAND: ${{ inputs.server-command }}
+        PYTHONPATH: ${{ github.action_path }}
       run: |
         # locate the action path to find run-tests
         ACTION_PATH="${{ github.action_path }}"
