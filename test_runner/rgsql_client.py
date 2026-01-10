@@ -101,6 +101,7 @@ class RgSqlClient:
         elif result['status'] == 'ok':
             if 'rows' in result:
                 rows = result['rows']
+                column_types = result.get('column_types', [])
                 if not isinstance(rows, list):
                     raise TestError(
                         f"Expected 'rows' to contain an array of rows: {response}")
@@ -108,10 +109,17 @@ class RgSqlClient:
                     if not isinstance(row, list):
                         raise TestError(
                             f"Expected each row to contain an array of values: {response}")
-                    for value in row:
-                        if not isinstance(value, (int, bool, str, type(None))):
+                    for i, value in enumerate(row):
+                        # Allow float for NUMERIC columns (PostgreSQL-style decimal as string)
+                        if not isinstance(value, (int, float, bool, str, type(None))):
                             raise TestError(
-                                f"Expected each value to be a integer, boolean, string or null: {response}")
+                                f"Expected each value to be a integer, float, boolean, string or null: {response}")
+                        # Convert NUMERIC string values to float for comparison
+                        if i < len(column_types) and column_types[i] == 'NUMERIC' and isinstance(value, str):
+                            try:
+                                row[i] = float(value)
+                            except ValueError:
+                                pass  # Keep as string if not a valid number
         else:
             raise TestError(
                 f"'status' key should be set to 'ok' or 'error', was: {result['status']}")
