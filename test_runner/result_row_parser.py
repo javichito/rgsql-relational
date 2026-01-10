@@ -31,6 +31,9 @@ class ResultRowParser:
         elif self.consume(r"^'([^']*)'"):
             # Extract the string content without quotes from the captured group
             return self.last_match.group(1)
+        elif (self.consume(r'^(-?\d+\.\d+)')):
+            # Decimal number (must check before integer to match decimals first)
+            return float(self.last_match.group(1))
         elif (self.consume(r'^(-?\d+)')):
             return int(self.last_match.group(1))
         else:
@@ -43,4 +46,3 @@ class ResultRowParser:
             self.row = self.row[match.end():].strip()
             self.last_match = match  # Store the match object, not the string
             return match.group()  # But still return the string for backward compatibility
-
