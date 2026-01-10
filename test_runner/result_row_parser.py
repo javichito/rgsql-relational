@@ -1,4 +1,5 @@
 import re
+from decimal import Decimal
 
 
 class ResultRowParser:
@@ -32,8 +33,8 @@ class ResultRowParser:
             # Extract the string content without quotes from the captured group
             return self.last_match.group(1)
         elif (self.consume(r'^(-?\d+\.\d+)')):
-            # Decimal number (must check before integer to match decimals first)
-            return float(self.last_match.group(1))
+            # Decimal number - use Python Decimal for arbitrary precision
+            return Decimal(self.last_match.group(1))
         elif (self.consume(r'^(-?\d+)')):
             return int(self.last_match.group(1))
         else:

@@ -1,4 +1,5 @@
 from collections import Counter
+from decimal import Decimal
 from test_runner.test_error import TestError
 from test_runner.utils import print_red, print_green, indent
 from test_runner.log_manager import LogManager
@@ -42,6 +43,10 @@ class ResultIncorrectError(TestComparisonError):
         elif value is None:
             return "NULL"
         elif isinstance(value, int):
+            return str(value)
+        elif isinstance(value, Decimal):
+            return str(value)
+        elif isinstance(value, float):
             return str(value)
         elif isinstance(value, str):
             return f"'{self.escape_string(value)}'"

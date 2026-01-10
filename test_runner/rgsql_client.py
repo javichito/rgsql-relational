@@ -1,6 +1,7 @@
 import json
 import socket
 import time
+from decimal import Decimal
 
 from test_runner.test_error import TestError
 from test_runner.settings import Settings
@@ -110,15 +111,15 @@ class RgSqlClient:
                         raise TestError(
                             f"Expected each row to contain an array of values: {response}")
                     for i, value in enumerate(row):
-                        # Allow float for NUMERIC columns (PostgreSQL-style decimal as string)
-                        if not isinstance(value, (int, float, bool, str, type(None))):
+                        # Allow float/Decimal for NUMERIC columns
+                        if not isinstance(value, (int, float, bool, str, type(None), Decimal)):
                             raise TestError(
                                 f"Expected each value to be a integer, float, boolean, string or null: {response}")
-                        # Convert NUMERIC string values to float for comparison
+                        # Convert NUMERIC string values to Python Decimal for precision
                         if i < len(column_types) and column_types[i] == 'NUMERIC' and isinstance(value, str):
                             try:
-                                row[i] = float(value)
-                            except ValueError:
+                                row[i] = Decimal(value)
+                            except Exception:
                                 pass  # Keep as string if not a valid number
         else:
             raise TestError(
