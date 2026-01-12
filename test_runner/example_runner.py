@@ -6,19 +6,37 @@ from test_runner.log_manager import LogManager
 import traceback
 
 
-def normalize_value(value):
+def normalize_value_pair(expected, actual):
     """
-    Normalize a value for comparison.
-    Converts Decimal to float for proper comparison with native JSON floats.
+    Normalize a value pair for comparison.
+    - If actual is a float and expected is Decimal, convert Decimal to float (for REAL/DOUBLE PRECISION)
+    - If actual is a string and expected is Decimal, convert Decimal to string (for NUMERIC/DECIMAL)
+    - Otherwise, return both as-is
     """
-    if isinstance(value, Decimal):
-        return float(value)
-    return value
+    if isinstance(expected, Decimal):
+        if isinstance(actual, float):
+            return float(expected), actual
+        elif isinstance(actual, str):
+            return str(expected), actual
+    return expected, actual
 
 
-def normalize_row(row):
-    """Normalize all values in a row for comparison."""
-    return tuple(normalize_value(v) for v in row)
+def normalize_rows(expected_rows, actual_rows):
+    """Normalize rows pairwise based on actual value types."""
+    normalized_expected = []
+    normalized_actual = []
+    
+    for exp_row, act_row in zip(expected_rows, actual_rows):
+        norm_exp = []
+        norm_act = []
+        for exp_val, act_val in zip(exp_row, act_row):
+            ne, na = normalize_value_pair(exp_val, act_val)
+            norm_exp.append(ne)
+            norm_act.append(na)
+        normalized_expected.append(tuple(norm_exp))
+        normalized_actual.append(tuple(norm_act))
+    
+    return normalized_expected, normalized_actual
 
 
 class TestComparisonError(Exception):
@@ -199,14 +217,18 @@ class ExampleRunner():
         if example.result == []:
             return result['rows'] == [] or result['rows'] == [[]]
         
-        # Normalize values for comparison (handles Decimal vs float mismatches)
-        expected_tuples = [normalize_row(row) for row in example.result]
-        actual_tuples = [normalize_row(row) for row in result['rows']]
+        # For unordered comparison with different row counts, fail fast
+        if len(example.result) != len(result['rows']):
+            return False
+        
+        # Normalize values pairwise based on actual types
+        # This handles Decimal vs float (REAL) and Decimal vs string (NUMERIC)
+        norm_expected, norm_actual = normalize_rows(example.result, result['rows'])
         
         if example.ordered:
-            return actual_tuples == expected_tuples
+            return norm_actual == norm_expected
         else:
-            return Counter(expected_tuples) == Counter(actual_tuples)
+            return Counter(norm_expected) == Counter(norm_actual)
 
     def columns_match(self, expected_columns, result):
         if 'column_names' not in result:
