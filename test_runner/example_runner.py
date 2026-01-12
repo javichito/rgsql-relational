@@ -6,6 +6,21 @@ from test_runner.log_manager import LogManager
 import traceback
 
 
+def normalize_value(value):
+    """
+    Normalize a value for comparison.
+    Converts Decimal to float for proper comparison with native JSON floats.
+    """
+    if isinstance(value, Decimal):
+        return float(value)
+    return value
+
+
+def normalize_row(row):
+    """Normalize all values in a row for comparison."""
+    return tuple(normalize_value(v) for v in row)
+
+
 class TestComparisonError(Exception):
     def __init__(self, expected, result, example):
         self.expected = expected
@@ -183,11 +198,14 @@ class ExampleRunner():
                 f"Server response does not contain a 'rows' key")
         if example.result == []:
             return result['rows'] == [] or result['rows'] == [[]]
+        
+        # Normalize values for comparison (handles Decimal vs float mismatches)
+        expected_tuples = [normalize_row(row) for row in example.result]
+        actual_tuples = [normalize_row(row) for row in result['rows']]
+        
         if example.ordered:
-            return result['rows'] == example.result
+            return actual_tuples == expected_tuples
         else:
-            expected_tuples = [tuple(row) for row in example.result]
-            actual_tuples = [tuple(row) for row in result['rows']]
             return Counter(expected_tuples) == Counter(actual_tuples)
 
     def columns_match(self, expected_columns, result):
