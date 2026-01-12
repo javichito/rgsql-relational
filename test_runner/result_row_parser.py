@@ -32,6 +32,9 @@ class ResultRowParser:
         elif self.consume(r"^'([^']*)'"):
             # Extract the string content without quotes from the captured group
             return self.last_match.group(1)
+        elif (self.consume(r'^(-?\d+\.?\d*[eE][+-]?\d+)')):
+            # Scientific notation - parse as float
+            return float(self.last_match.group(1))
         elif (self.consume(r'^(-?\d+\.\d+)')):
             # Decimal number - use Python Decimal for arbitrary precision
             return Decimal(self.last_match.group(1))
