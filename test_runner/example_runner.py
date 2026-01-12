@@ -11,12 +11,17 @@ def normalize_value_pair(expected, actual):
     Normalize a value pair for comparison.
     - If actual is a float and expected is Decimal, convert Decimal to float (for REAL/DOUBLE PRECISION)
     - If actual is a string and expected is Decimal, convert Decimal to string (for NUMERIC/DECIMAL)
+    - If actual is a string and expected is int, convert int to string (for BIGINT)
     - Otherwise, return both as-is
     """
     if isinstance(expected, Decimal):
         if isinstance(actual, float):
             return float(expected), actual
         elif isinstance(actual, str):
+            return str(expected), actual
+    elif isinstance(expected, int):
+        if isinstance(actual, str):
+            # BIGINT values are returned as strings in JSON to preserve precision
             return str(expected), actual
     return expected, actual
 
@@ -222,7 +227,8 @@ class ExampleRunner():
             return False
         
         # Normalize values pairwise based on actual types
-        # This handles Decimal vs float (REAL) and Decimal vs string (NUMERIC)
+        # This handles Decimal vs float (REAL), Decimal vs string (NUMERIC)
+        # and int vs string (BIGINT)
         norm_expected, norm_actual = normalize_rows(example.result, result['rows'])
         
         if example.ordered:
