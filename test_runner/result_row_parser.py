@@ -35,6 +35,18 @@ class ResultRowParser:
         elif (self.consume(r'^(-?\d+\.?\d*[eE][+-]?\d+)')):
             # Scientific notation - parse as float
             return float(self.last_match.group(1))
+        elif (self.consume(r'^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?)')):
+            # ISO 8601 timestamp with optional timezone (e.g., 2024-01-15T10:30:00Z)
+            return self.last_match.group(1)
+        elif (self.consume(r'^(\d{4}-\d{2}-\d{2})')):
+            # ISO 8601 date (e.g., 2024-01-15)
+            return self.last_match.group(1)
+        elif (self.consume(r'^(\d{2}:\d{2}:\d{2}(?:\.\d+)?)')):
+            # ISO 8601 time (e.g., 14:30:00 or 14:30:00.123456)
+            return self.last_match.group(1)
+        elif (self.consume(r'^(P(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+S)?)?)')):
+            # ISO 8601 duration/interval (e.g., P1D, PT5H30M, P2Y3M10D)
+            return self.last_match.group(1)
         elif (self.consume(r'^(-?\d+\.\d+)')):
             # Decimal number - use Python Decimal for arbitrary precision
             return Decimal(self.last_match.group(1))
