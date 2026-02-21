@@ -131,6 +131,21 @@ class ErrorTypeIncorrectError(TestComparisonError):
         return f"Expected statement to return an error_type '{self.expected}' but was '{actual}'{formatted_error_message}"
 
 
+class ContainsResultError(TestComparisonError):
+    def __str__(self):
+        actual_text = self.format_actual_rows()
+        missing = self.expected
+        return (f"Expected rows to contain substrings:\n"
+                f"{indent(chr(10).join(missing))}\n"
+                "\n"
+                "Got rows:\n"
+                f"{indent(actual_text)}")
+
+    def format_actual_rows(self):
+        rows = self.result.get('rows', [])
+        return "\n".join(str(row) for row in rows)
+
+
 class ExampleRunner():
     def __init__(self, suite, client):
         self.client = client
@@ -186,7 +201,14 @@ class ExampleRunner():
 
         result = self.run_query(query)
 
-        if example.result != None:
+        if example.contains_result is not None:
+            if result['status'] != 'ok':
+                raise StatusIncorrectError('ok', result, example)
+            missing = self.contains_result_check(result, example.contains_result)
+            if missing:
+                raise ContainsResultError(missing, result, example)
+
+        elif example.result != None:
             if result['status'] != 'ok':
                 raise StatusIncorrectError('ok', result, example)
             if not self.result_matches(result, example):
@@ -241,3 +263,19 @@ class ExampleRunner():
             raise TestError(
                 f"Server response does not contain a 'column_names' key")
         return expected_columns == result['column_names']
+
+    def contains_result_check(self, result, expected_substrings):
+        """Check that each expected substring appears in at least one row value."""
+        if 'rows' not in result:
+            raise TestError("Server response does not contain a 'rows' key")
+
+        all_text = []
+        for row in result['rows']:
+            for value in row:
+                all_text.append(str(value))
+
+        missing = []
+        for substring in expected_substrings:
+            if not any(substring in text for text in all_text):
+                missing.append(substring)
+        return missing

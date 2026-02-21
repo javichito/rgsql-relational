@@ -45,7 +45,7 @@ class ExampleParser:
         line = self.line_count
 
         sql = self.parse_sql()
-        (ordered, result) = self.parse_result()
+        (ordered, result, contains_result) = self.parse_result()
         self.parse_status()
         columns = self.parse_column()
         error = self.parse_error()
@@ -60,6 +60,7 @@ class ExampleParser:
             error=error,
             line=line,
             ordered=ordered,
+            contains_result=contains_result,
         )
 
         if chained_example:
@@ -85,7 +86,14 @@ class ExampleParser:
     def parse_result(self):
         ordered = False
         result = []
-        if self.next_line_starts_with('--- returns:') or self.next_line_starts_with('--- returns in order:'):
+        contains_result = None
+        if self.next_line_starts_with('--- returns rows containing:'):
+            self.pop_line()
+            contains_result = []
+            while self.lines and self.lines[0].strip() != '' and not self.next_line_starts_with('--- '):
+                contains_result.append(self.pop_line().strip())
+            return ordered, None, contains_result
+        elif self.next_line_starts_with('--- returns:') or self.next_line_starts_with('--- returns in order:'):
             line = self.pop_line()
             if line.startswith('--- returns in order:'):
                 ordered = True
@@ -94,12 +102,12 @@ class ExampleParser:
                 values = ResultRowParser(row).parse()
                 result.append(values)
 
-            return ordered, result
+            return ordered, result, contains_result
         elif self.next_line_starts_with('--- returns no rows'):
             self.pop_line()
-            return ordered, []
+            return ordered, [], contains_result
         else:
-            return ordered, None
+            return ordered, None, contains_result
 
     def parse_sql(self):
         sql_lines = []
