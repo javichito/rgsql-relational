@@ -4,7 +4,7 @@ from test_runner.utils import print_red
 
 
 class Example:
-    def __init__(self, title, file, group_description, sql, result, columns, error, line, ordered):
+    def __init__(self, title, file, group_description, sql, result, columns, error, line, ordered, contains_result=None):
         self.title = title
         self.file = file
         self.group_description = group_description
@@ -14,6 +14,7 @@ class Example:
         self.error = error
         self.line = line
         self.ordered = ordered
+        self.contains_result = contains_result
         self.chained_examples = []
 
     def print_summary(self):
